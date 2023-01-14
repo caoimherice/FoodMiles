@@ -1,0 +1,8 @@
+Flask==1.1.4
+Werkzeug==1.0.1
+markupsafe==2.0.1
+
+boto3~=1.26.41
+Jinja2~=2.11.3
+itsdangerous~=1.1.0
+click~=7.1.2
