@@ -226,7 +226,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/Food-miles/dev/1673390502805-2023-01-10T22:41:42.805Z/Food-miles.zip"
+          "S3Key": "serverless/Food-miles/dev/1674734191834-2023-01-26T11:56:31.834Z/Food-miles.zip"
         },
         "Handler": "s_api.handler",
         "Runtime": "python3.9",
@@ -249,14 +249,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionamBVOnlTmIO59hsb07O138QdE8a8THIaGlPeUK3dxY": {
+    "ApiLambdaVersionRGXk4V4LUb2AmHXpCXBHDphdWLdaRFjZOpmT4EuQ8": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "Iq7mYYnSH8JoHiA33k/KK/1mgu+jbm4o1/FK1hCprXM="
+        "CodeSha256": "kedZxcthh6Hxch0aoVG7uREAzFR6z2g0b/jep9S6HYE="
       }
     },
     "HttpApi": {
@@ -459,7 +459,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionamBVOnlTmIO59hsb07O138QdE8a8THIaGlPeUK3dxY"
+        "Ref": "ApiLambdaVersionRGXk4V4LUb2AmHXpCXBHDphdWLdaRFjZOpmT4EuQ8"
       },
       "Export": {
         "Name": "sls-Food-miles-dev-ApiLambdaFunctionQualifiedArn"

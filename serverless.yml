@@ -6,6 +6,7 @@ frameworkVersion: '3'
 
 custom:
   tableName: 'users-table-${sls:stage}'
+  foodTableName: 'food-table-${sls:stage}'
   wsgi:
     app: app.app
 
@@ -27,14 +28,22 @@ provider:
             - dynamodb:DeleteItem
           Resource:
             - Fn::GetAtt: [ UsersTable, Arn ]
+            - Fn::GetAtt: [ FoodTable, Arn ]
   environment:
     USERS_TABLE: ${self:custom.tableName}
+    FOOD_TABLE: ${self:custom.foodTableName}
 
 functions:
   api:
     handler: wsgi_handler.handler
     events:
       - httpApi: '*'
+  apiFood:
+    handler: wsgi_handler.handler
+    events:
+      - httpApi:
+          path: /food
+          method: ANY
 
 plugins:
   - serverless-wsgi
@@ -55,3 +64,16 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:custom.tableName}
+    FoodTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.foodTableName}
+        AttributeDefinitions:
+          - AttributeName: origin
+            AttributeType: S
+        KeySchema:
+          - AttributeName: name
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

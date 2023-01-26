@@ -15,6 +15,7 @@ if os.environ.get('IS_OFFLINE'):
 
 
 USERS_TABLE = os.environ['USERS_TABLE']
+FOOD_TABLE = os.environ['FOOD_TABLE']
 
 
 @app.route('/users/<string:user_id>')
@@ -45,6 +46,18 @@ def create_user():
     return jsonify({'userId': user_id, 'name': name})
 
 
+@app.route('/food/item', methods=['POST'])
+def create_user():
+    name = request.json.get('name')
+    origin = request.json.get('origin')
+    if not name or not origin:
+        return jsonify({'error': 'Please provide both "name" and "origin"'}), 400
+
+    dynamodb_client.put_item(
+        TableName=FOOD_TABLE, Item={'name': {'S': name}, 'origin': {'S': origin}}
+    )
+
+    return jsonify({'name': name, 'origin': origin})
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error='Not found!'), 404)
