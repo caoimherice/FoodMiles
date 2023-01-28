@@ -15,7 +15,7 @@ if os.environ.get('IS_OFFLINE'):
 
 
 USERS_TABLE = os.environ['USERS_TABLE']
-FOOD_TABLE = os.environ['FOOD_TABLE']
+ITEM_TABLE = os.environ['ITEM_TABLE']
 
 
 @app.route('/users/<string:user_id>')
@@ -47,17 +47,34 @@ def create_user():
 
 
 @app.route('/food/item', methods=['POST'])
-def create_user():
+def create_item():
     name = request.json.get('name')
     origin = request.json.get('origin')
-    if not name or not origin:
-        return jsonify({'error': 'Please provide both "name" and "origin"'}), 400
+    miles = request.json.get('miles')
+    if not name or not origin or not miles:
+        return jsonify({'error': 'Please provide both "name" and "origin" and "miles"'}), 400
 
     dynamodb_client.put_item(
-        TableName=FOOD_TABLE, Item={'name': {'S': name}, 'origin': {'S': origin}}
+        TableName=ITEM_TABLE, Item={'name': {'S': name}, 'origin': {'S': origin}, 'miles': {'S': miles}}
     )
 
-    return jsonify({'name': name, 'origin': origin})
+    return jsonify({'name': name, 'origin': origin, 'miles': miles})
+
+
+@app.route('/food/item/<string:name>/<string:origin>')
+def get_item(name, origin):
+    result = dynamodb_client.get_item(
+        TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
+    )
+    item = result.get('Item')
+    if not item:
+        return jsonify({'error': 'Could not find food item with provided "name and origin"'}), 404
+
+    return jsonify(
+        {'name': item.get('name').get('S'), 'origin': item.get('origin').get('S'), 'miles': item.get('miles').get('S')}
+    )
+
+
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error='Not found!'), 404)
