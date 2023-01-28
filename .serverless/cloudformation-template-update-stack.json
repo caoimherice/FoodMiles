@@ -244,7 +244,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/Food-miles/dev/1674918228181-2023-01-28T15:03:48.181Z/Food-miles.zip"
+          "S3Key": "serverless/Food-miles/dev/1674921697014-2023-01-28T16:01:37.014Z/Food-miles.zip"
         },
         "Handler": "s_api.handler",
         "Runtime": "python3.9",
@@ -275,7 +275,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/Food-miles/dev/1674918228181-2023-01-28T15:03:48.181Z/Food-miles.zip"
+          "S3Key": "serverless/Food-miles/dev/1674921697014-2023-01-28T16:01:37.014Z/Food-miles.zip"
         },
         "Handler": "s_apiFood.handler",
         "Runtime": "python3.9",
@@ -299,24 +299,24 @@
         "ApiFoodLogGroup"
       ]
     },
-    "ApiLambdaVersionmcQRoXgEFQlPN6C2EQ1nSZsX58AjZniPcSBZo5LRIKo": {
+    "ApiLambdaVersionKfmrFV4myZIXku90JBCCGB3CXuMqCeS2n8qvPId6NLU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "beeN97Z35MNNwhtbw97E3eMoR67t1zzv3j/4oL0UIDI="
+        "CodeSha256": "Fwvr51Znk0x/o0ybKk39862oV3Dyc5abXf2ULJiCCsc="
       }
     },
-    "ApiFoodLambdaVersionDHF9GvX40UVjb9u8P9Z7xF62U3rfRnlMUfOsLp2Pg": {
+    "ApiFoodLambdaVersion1GRKVrFPHY11vgFhkEBcEV1IVenizmIibmfXXHfPJs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiFoodLambdaFunction"
         },
-        "CodeSha256": "beeN97Z35MNNwhtbw97E3eMoR67t1zzv3j/4oL0UIDI="
+        "CodeSha256": "Fwvr51Znk0x/o0ybKk39862oV3Dyc5abXf2ULJiCCsc="
       }
     },
     "HttpApi": {
@@ -634,7 +634,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionmcQRoXgEFQlPN6C2EQ1nSZsX58AjZniPcSBZo5LRIKo"
+        "Ref": "ApiLambdaVersionKfmrFV4myZIXku90JBCCGB3CXuMqCeS2n8qvPId6NLU"
       },
       "Export": {
         "Name": "sls-Food-miles-dev-ApiLambdaFunctionQualifiedArn"
@@ -643,7 +643,7 @@
     "ApiFoodLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiFoodLambdaVersionDHF9GvX40UVjb9u8P9Z7xF62U3rfRnlMUfOsLp2Pg"
+        "Ref": "ApiFoodLambdaVersion1GRKVrFPHY11vgFhkEBcEV1IVenizmIibmfXXHfPJs"
       },
       "Export": {
         "Name": "sls-Food-miles-dev-ApiFoodLambdaFunctionQualifiedArn"
