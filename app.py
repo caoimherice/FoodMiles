@@ -1,6 +1,8 @@
+import json
 import os
 
 import boto3
+from boto3.dynamodb.conditions import Key
 from flask import Flask, jsonify, make_response, request
 
 app = Flask(__name__)
@@ -16,6 +18,7 @@ if os.environ.get('IS_OFFLINE'):
 
 USERS_TABLE = os.environ['USERS_TABLE']
 ITEM_TABLE = os.environ['ITEM_TABLE']
+SHOPPING_LIST_TABLE = os.environ['SHOPPING_LIST_TABLE']
 
 
 @app.route('/users/<string:user_id>')
@@ -73,6 +76,47 @@ def get_item(name, origin):
     return jsonify(
         {'name': item.get('name').get('S'), 'origin': item.get('origin').get('S'), 'miles': item.get('miles').get('S')}
     )
+
+
+@app.route('/shoppingList/item', methods=['POST'])
+def add_item():
+    userId = request.json.get('userId')
+    name = request.json.get('name')
+    origin = request.json.get('origin')
+    itemId = name + ',' + origin
+    if not name or not origin or not userId:
+        return jsonify({'error': 'Please provide both "name" and "origin" and "userId"'}), 400
+
+    dynamodb_client.put_item(
+        TableName=SHOPPING_LIST_TABLE, Item={'userId': {'S': userId}, 'itemId': {'S': itemId}}
+    )
+
+    return jsonify({'userId': userId, 'itemId': itemId})
+
+
+@app.route('/shoppingList/item/<string:userId>')
+def get_list(userId):
+    result = dynamodb_client.query(
+        TableName=SHOPPING_LIST_TABLE,
+        KeyConditionExpression='userId = :userId',
+        ExpressionAttributeValues={
+            ':userId': {'S': userId}
+        }
+    )
+    items = result.get("Items")
+    return jsonify(items)
+
+    # result = dynamodb_client.get_item(
+    #     TableName=SHOPPING_LIST_TABLE, Key={'userId': {'S': userId}}
+    # )
+    # item = result.get('Item')
+    # if not item:
+    #     return jsonify({'error': 'Could not find food item with provided "name and origin"'}), 404
+    #
+    # return jsonify(
+    #     {'userId': item.get('userId').get('S')}
+    # )
+
 
 
 @app.errorhandler(404)
