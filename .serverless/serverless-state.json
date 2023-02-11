@@ -291,7 +291,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1675981385354-2023-02-09T22:23:05.354Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1676126697429-2023-02-11T14:44:57.429Z/Food-miles.zip"
               },
               "Handler": "s_api.handler",
               "Runtime": "python3.9",
@@ -323,7 +323,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1675981385354-2023-02-09T22:23:05.354Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1676126697429-2023-02-11T14:44:57.429Z/Food-miles.zip"
               },
               "Handler": "s_apiFood.handler",
               "Runtime": "python3.9",
@@ -355,7 +355,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1675981385354-2023-02-09T22:23:05.354Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1676126697429-2023-02-11T14:44:57.429Z/Food-miles.zip"
               },
               "Handler": "s_apiShoppingList.handler",
               "Runtime": "python3.9",
@@ -380,34 +380,34 @@
               "ApiShoppingListLogGroup"
             ]
           },
-          "ApiLambdaVersionamECjB6Z466MGAX3moSeNRGXPIPkuJKDNG6k9aTlS0": {
+          "ApiLambdaVersionrO7Q43Z2ULPkafpQAsdtpEmGdM7vED7Cew93su8o": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "hc2xQ2NMPRUblTOyHQi/tY4VquP4pyPKXbLY8jsGRYg="
+              "CodeSha256": "0lYip686gKjDlmi1byln6aOgZg9pISmw9mdMK2OObZo="
             }
           },
-          "ApiFoodLambdaVersionSfy2wDVGSImQ4FaBBW442zH0xatszJ8Hnqmd3u04": {
+          "ApiFoodLambdaVersionJA3GsENuIKlUddhQ1o0fZgILIfrmwLNZMoJs07HdSA": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiFoodLambdaFunction"
               },
-              "CodeSha256": "hc2xQ2NMPRUblTOyHQi/tY4VquP4pyPKXbLY8jsGRYg="
+              "CodeSha256": "0lYip686gKjDlmi1byln6aOgZg9pISmw9mdMK2OObZo="
             }
           },
-          "ApiShoppingListLambdaVersionK5pOYXYb8cSwJLJ7GNNvedcUH1QFc7KQWyPiPvY8kj0": {
+          "ApiShoppingListLambdaVersion4zMzVTgirwOu2IeLVq1Yp98oV1Y9ssavP1LAuCc8ME": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiShoppingListLambdaFunction"
               },
-              "CodeSha256": "hc2xQ2NMPRUblTOyHQi/tY4VquP4pyPKXbLY8jsGRYg="
+              "CodeSha256": "0lYip686gKjDlmi1byln6aOgZg9pISmw9mdMK2OObZo="
             }
           },
           "HttpApi": {
@@ -831,7 +831,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionamECjB6Z466MGAX3moSeNRGXPIPkuJKDNG6k9aTlS0"
+              "Ref": "ApiLambdaVersionrO7Q43Z2ULPkafpQAsdtpEmGdM7vED7Cew93su8o"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiLambdaFunctionQualifiedArn"
@@ -840,7 +840,7 @@
           "ApiFoodLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiFoodLambdaVersionSfy2wDVGSImQ4FaBBW442zH0xatszJ8Hnqmd3u04"
+              "Ref": "ApiFoodLambdaVersionJA3GsENuIKlUddhQ1o0fZgILIfrmwLNZMoJs07HdSA"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiFoodLambdaFunctionQualifiedArn"
@@ -849,7 +849,7 @@
           "ApiShoppingListLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiShoppingListLambdaVersionK5pOYXYb8cSwJLJ7GNNvedcUH1QFc7KQWyPiPvY8kj0"
+              "Ref": "ApiShoppingListLambdaVersion4zMzVTgirwOu2IeLVq1Yp98oV1Y9ssavP1LAuCc8ME"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiShoppingListLambdaFunctionQualifiedArn"
@@ -1008,7 +1008,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionamECjB6Z466MGAX3moSeNRGXPIPkuJKDNG6k9aTlS0"
+        "versionLogicalId": "ApiLambdaVersionrO7Q43Z2ULPkafpQAsdtpEmGdM7vED7Cew93su8o"
       },
       "apiFood": {
         "handler": "s_apiFood.handler",
@@ -1028,7 +1028,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiFoodLambdaVersionSfy2wDVGSImQ4FaBBW442zH0xatszJ8Hnqmd3u04"
+        "versionLogicalId": "ApiFoodLambdaVersionJA3GsENuIKlUddhQ1o0fZgILIfrmwLNZMoJs07HdSA"
       },
       "apiShoppingList": {
         "handler": "s_apiShoppingList.handler",
@@ -1048,7 +1048,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiShoppingListLambdaVersionK5pOYXYb8cSwJLJ7GNNvedcUH1QFc7KQWyPiPvY8kj0"
+        "versionLogicalId": "ApiShoppingListLambdaVersion4zMzVTgirwOu2IeLVq1Yp98oV1Y9ssavP1LAuCc8ME"
       }
     },
     "resources": {
@@ -1171,7 +1171,7 @@
     "artifact": "C:\\Users\\Caoimhe\\OneDrive - National University of Ireland, Galway\\Third Year\\FYP\\Food-miles\\.serverless\\Food-miles.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/Food-miles/dev/1675981385354-2023-02-09T22:23:05.354Z",
+    "artifactDirectoryName": "serverless/Food-miles/dev/1676126697429-2023-02-11T14:44:57.429Z",
     "artifact": "Food-miles.zip"
   }
 }
