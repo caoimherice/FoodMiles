@@ -148,20 +148,89 @@ def get_list_details(userId):
     # )
 
 
-@app.route('/savedList/item', methods=['POST'])
+@app.route('/savedList/list', methods=['POST'])
 def add_list():
     userId = request.json.get('userId')
     if not userId:
         return jsonify({'error': 'Please provide "userId"'}), 400
-
+        # Get the list of items from the request body
+    items = request.json.get('items')
+    if not items:
+        return jsonify({'error': 'Please provide "items"'}), 400
     current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # Create a new item to be added to the database
+    new_item = {
+        'userId': {'S': userId},
+        'createdAt': {'S': current_time},
+        'items': {'L': []}
+    }
+    # Add each item to the "items" list
+    for item in items:
+        item_details = {
+            'name': {'S': item.get('itemDetails').get('miles')},
+            'origin': {'S': item.get('itemDetails').get('origin')},
+            'miles': {'S': item.get('itemDetails').get('miles')}
+        }
+        new_item['items']['L'].append({'M': {'itemDetails': {'M': item_details}}})
     dynamodb_client.put_item(
-        TableName=SAVED_LIST_TABLE, Item={'userId': {'S': userId}, 'createdAt': {'S': current_time}}
+        # TableName=SAVED_LIST_TABLE, Item={'userId': {'S': userId}, 'createdAt': {'S': current_time}}
+        TableName=SAVED_LIST_TABLE, Item=new_item
     )
 
-    return jsonify({'userId': userId, 'createdAt': current_time})
+    # Return a response with the saved user ID, creation time, and items
+    # response = {'userId': userId, 'createdAt': current_time, 'items': items}
+    # return jsonify(response)
+    # return jsonify({'userId': userId, 'createdAt': current_time})
+    return jsonify({'message': 'Items saved successfully'})
 
 
+@app.route('/savedList/list/<string:userId>', methods=['GET'])
+def get_saved_list(userId):
+    result = dynamodb_client.query(
+        TableName=SAVED_LIST_TABLE,
+        KeyConditionExpression='userId = :userId',
+        ExpressionAttributeValues={
+            ':userId': {'S': userId}
+        }
+    )
+    items = []
+    for item in result['Items']:
+        items_list = item['items']['L']
+        items.append({'createdAt': item['createdAt']['S']})
+        for i in items_list:
+            items.append({
+                'itemDetails': {
+                    'name': i['M']['itemDetails']['M']['name']['S'],
+                    'origin': i['M']['itemDetails']['M']['origin']['S'],
+                    'miles': i['M']['itemDetails']['M']['miles']['S']
+                }
+            })
+    return jsonify({'userId': userId, 'items': items})
+
+# @app.route('/savedList/<userId>', methods=['GET'])
+# def get_saved_list(userId):
+#     response = dynamodb_client.get_item(
+#         TableName=SAVED_LIST_TABLE,
+#         Key={'userId': {'S': userId}}
+#     )
+#
+#     if 'Item' not in response:
+#         return jsonify({'error': f'No saved list found for user ID {userId}'}), 404
+#
+#     saved_list = response['Item']
+#     items = saved_list['items']['L']
+#
+#     item_details_list = []
+#     for item in items:
+#         item_details_list.append(item['M']['itemDetails']['M'])
+#
+#     result = {
+#         'userId': saved_list['userId']['S'],
+#         'createdAt': saved_list['createdAt']['S'],
+#         'items': item_details_list
+#     }
+#
+#     return jsonify(result)
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error='Not found!'), 404)

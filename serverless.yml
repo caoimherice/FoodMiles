@@ -56,6 +56,12 @@ functions:
       - httpApi:
           path: /shoppingList
           method: ANY
+  apiSavedList:
+    handler: wsgi_handler.handler
+    events:
+      - httpApi:
+          path: /savedList
+          method: ANY
 
 plugins:
   - serverless-wsgi
