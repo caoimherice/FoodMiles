@@ -8,6 +8,7 @@ custom:
   tableName: 'users-table-${sls:stage}'
   itemTableName: 'item-table-${sls:stage}'
   shoppingListTableName: 'shopping-list-table-${sls:stage}'
+  savedListTableName: 'saved-list-table-${sls:stage}'
   wsgi:
     app: app.app
 
@@ -31,10 +32,12 @@ provider:
             - Fn::GetAtt: [ UsersTable, Arn ]
             - Fn::GetAtt: [ ItemTable, Arn ]
             - Fn::GetAtt: [ ShoppingListTable, Arn ]
+            - Fn::GetAtt: [ SavedListTable, Arn ]
   environment:
     USERS_TABLE: ${self:custom.tableName}
     ITEM_TABLE: ${self:custom.itemTableName}
     SHOPPING_LIST_TABLE: ${self:custom.shoppingListTableName}
+    SAVED_LIST_TABLE: ${self:custom.savedListTableName}
 
 functions:
   api:
@@ -103,6 +106,23 @@ resources:
           - AttributeName: userId
             KeyType: HASH
           - AttributeName: itemId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    SavedListTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.savedListTableName}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: createdAt
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1

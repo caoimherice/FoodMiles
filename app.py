@@ -2,6 +2,7 @@ import json
 import os
 
 import boto3
+import datetime
 from boto3.dynamodb.conditions import Key
 from flask import Flask, jsonify, make_response, request
 
@@ -19,6 +20,7 @@ if os.environ.get('IS_OFFLINE'):
 USERS_TABLE = os.environ['USERS_TABLE']
 ITEM_TABLE = os.environ['ITEM_TABLE']
 SHOPPING_LIST_TABLE = os.environ['SHOPPING_LIST_TABLE']
+SAVED_LIST_TABLE = os.environ['SAVED_LIST_TABLE']
 
 
 @app.route('/users/<string:user_id>')
@@ -145,6 +147,19 @@ def get_list_details(userId):
     #     {'userId': item.get('userId').get('S')}
     # )
 
+
+@app.route('/savedList/item', methods=['POST'])
+def add_list():
+    userId = request.json.get('userId')
+    if not userId:
+        return jsonify({'error': 'Please provide "userId"'}), 400
+
+    current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    dynamodb_client.put_item(
+        TableName=SAVED_LIST_TABLE, Item={'userId': {'S': userId}, 'createdAt': {'S': current_time}}
+    )
+
+    return jsonify({'userId': userId, 'createdAt': current_time})
 
 
 @app.errorhandler(404)
