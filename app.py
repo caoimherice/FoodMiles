@@ -196,16 +196,36 @@ def get_saved_list(userId):
     items = []
     for item in result['Items']:
         items_list = item['items']['L']
-        items.append({'createdAt': item['createdAt']['S']})
+        new_item = [{'createdAt': item['createdAt']['S']}]
+        # items.append({'createdAt': item['createdAt']['S']})
         for i in items_list:
-            items.append({
+            new_item.append({
                 'itemDetails': {
                     'name': i['M']['itemDetails']['M']['name']['S'],
                     'origin': i['M']['itemDetails']['M']['origin']['S'],
                     'miles': i['M']['itemDetails']['M']['miles']['S']
                 }
             })
+            items.append(new_item)
     return jsonify({'userId': userId, 'items': items})
+
+    # items = result.get("Items")
+    # # iterate through each item in the shopping list and retrieve the item details using get_item()
+    # for item in items:
+    #     name = item.get('itemId').get('S').split(',')[0]
+    #     origin = item.get('itemId').get('S').split(',')[1]
+    #     item_result = dynamodb_client.get_item(
+    #         TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
+    #     )
+    #     item_details = item_result.get('Item')
+    #     if not item_details:
+    #         return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
+    #     item['itemDetails'] = {
+    #         'name': item_details.get('name').get('S'),
+    #         'origin': item_details.get('origin').get('S'),
+    #         'miles': item_details.get('miles').get('S')
+    #     }
+    # return jsonify(items)
 
 # @app.route('/savedList/<userId>', methods=['GET'])
 # def get_saved_list(userId):
