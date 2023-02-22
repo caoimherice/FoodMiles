@@ -118,6 +118,7 @@ def get_list_details(userId):
             ':userId': {'S': userId}
         }
     )
+    total_miles = 0
     items = result.get("Items")
     # iterate through each item in the shopping list and retrieve the item details using get_item()
     for item in items:
@@ -129,12 +130,13 @@ def get_list_details(userId):
         item_details = item_result.get('Item')
         if not item_details:
             return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
+        total_miles += int(item_details.get('miles').get('S'))
         item['itemDetails'] = {
             'name': item_details.get('name').get('S'),
             'origin': item_details.get('origin').get('S'),
             'miles': item_details.get('miles').get('S')
         }
-    return jsonify(items)
+    return jsonify(items, {'total_miles': total_miles})
 
     # result = dynamodb_client.get_item(
     #     TableName=SHOPPING_LIST_TABLE, Key={'userId': {'S': userId}}
@@ -196,18 +198,36 @@ def get_saved_list(userId):
     items = []
     for item in result['Items']:
         items_list = item['items']['L']
-        new_item = [{'createdAt': item['createdAt']['S']}]
+        new_item = {'createdAt': item['createdAt']['S']}
         # items.append({'createdAt': item['createdAt']['S']})
         for i in items_list:
-            new_item.append({
+            new_list = []
+            new_list.append({
                 'itemDetails': {
                     'name': i['M']['itemDetails']['M']['name']['S'],
                     'origin': i['M']['itemDetails']['M']['origin']['S'],
                     'miles': i['M']['itemDetails']['M']['miles']['S']
                 }
             })
+            new_item.update({'items_list': new_list})
             items.append(new_item)
-    return jsonify({'userId': userId, 'items': items})
+    return jsonify(items)
+    # items = []
+    # items_list = []
+    # for item in result['Items']:
+    #     items_list = item['items']['L']
+    #     new_item = [{'createdAt': item['createdAt']['S']}]
+    #     # items.append({'createdAt': item['createdAt']['S']})
+    #     for i in items_list:
+    #         new_item.append({
+    #             'itemDetails': {
+    #                 'name': i['M']['itemDetails']['M']['name']['S'],
+    #                 'origin': i['M']['itemDetails']['M']['origin']['S'],
+    #                 'miles': i['M']['itemDetails']['M']['miles']['S']
+    #             }
+    #         })
+    #         items.append(new_item)
+    # return jsonify(items)
 
     # items = result.get("Items")
     # # iterate through each item in the shopping list and retrieve the item details using get_item()
