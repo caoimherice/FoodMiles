@@ -169,7 +169,7 @@ def add_list():
     # Add each item to the "items" list
     for item in items:
         item_details = {
-            'name': {'S': item.get('itemDetails').get('miles')},
+            'name': {'S': item.get('itemDetails').get('name')},
             'origin': {'S': item.get('itemDetails').get('origin')},
             'miles': {'S': item.get('itemDetails').get('miles')}
         }
@@ -200,8 +200,8 @@ def get_saved_list(userId):
         items_list = item['items']['L']
         new_item = {'createdAt': item['createdAt']['S']}
         # items.append({'createdAt': item['createdAt']['S']})
+        new_list = []
         for i in items_list:
-            new_list = []
             new_list.append({
                 'itemDetails': {
                     'name': i['M']['itemDetails']['M']['name']['S'],
@@ -210,7 +210,7 @@ def get_saved_list(userId):
                 }
             })
             new_item.update({'items_list': new_list})
-            items.append(new_item)
+        items.append(new_item)
     return jsonify(items)
     # items = []
     # items_list = []
