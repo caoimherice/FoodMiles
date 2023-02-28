@@ -47,6 +47,12 @@
                     "SavedListTable",
                     "Arn"
                   ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "RouteTable",
+                    "Arn"
+                  ]
                 }
               ]
             }
@@ -57,7 +63,8 @@
         "USERS_TABLE": "users-table-dev",
         "ITEM_TABLE": "item-table-dev",
         "SHOPPING_LIST_TABLE": "shopping-list-table-dev",
-        "SAVED_LIST_TABLE": "saved-list-table-dev"
+        "SAVED_LIST_TABLE": "saved-list-table-dev",
+        "ROUTE_TABLE": "route-table-dev"
       },
       "stage": "dev",
       "region": "us-east-1",
@@ -157,6 +164,12 @@
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
               "LogGroupName": "/aws/lambda/Food-miles-dev-apiSavedList"
+            }
+          },
+          "ApiRouteLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/Food-miles-dev-apiRoute"
             }
           },
           "IamRoleLambdaExecution": {
@@ -294,6 +307,12 @@
                               "ApiSavedListLogGroup",
                               "Arn"
                             ]
+                          },
+                          {
+                            "Fn::GetAtt": [
+                              "ApiRouteLogGroup",
+                              "Arn"
+                            ]
                           }
                         ]
                       }
@@ -310,7 +329,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1677242725608-2023-02-24T12:45:25.608Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1677618489939-2023-02-28T21:08:09.939Z/Food-miles.zip"
               },
               "Handler": "s_api.handler",
               "Runtime": "python3.9",
@@ -322,7 +341,8 @@
                   "USERS_TABLE": "users-table-dev",
                   "ITEM_TABLE": "item-table-dev",
                   "SHOPPING_LIST_TABLE": "shopping-list-table-dev",
-                  "SAVED_LIST_TABLE": "saved-list-table-dev"
+                  "SAVED_LIST_TABLE": "saved-list-table-dev",
+                  "ROUTE_TABLE": "route-table-dev"
                 }
               },
               "Role": {
@@ -343,7 +363,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1677242725608-2023-02-24T12:45:25.608Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1677618489939-2023-02-28T21:08:09.939Z/Food-miles.zip"
               },
               "Handler": "s_apiFood.handler",
               "Runtime": "python3.9",
@@ -355,7 +375,8 @@
                   "USERS_TABLE": "users-table-dev",
                   "ITEM_TABLE": "item-table-dev",
                   "SHOPPING_LIST_TABLE": "shopping-list-table-dev",
-                  "SAVED_LIST_TABLE": "saved-list-table-dev"
+                  "SAVED_LIST_TABLE": "saved-list-table-dev",
+                  "ROUTE_TABLE": "route-table-dev"
                 }
               },
               "Role": {
@@ -376,7 +397,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1677242725608-2023-02-24T12:45:25.608Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1677618489939-2023-02-28T21:08:09.939Z/Food-miles.zip"
               },
               "Handler": "s_apiShoppingList.handler",
               "Runtime": "python3.9",
@@ -388,7 +409,8 @@
                   "USERS_TABLE": "users-table-dev",
                   "ITEM_TABLE": "item-table-dev",
                   "SHOPPING_LIST_TABLE": "shopping-list-table-dev",
-                  "SAVED_LIST_TABLE": "saved-list-table-dev"
+                  "SAVED_LIST_TABLE": "saved-list-table-dev",
+                  "ROUTE_TABLE": "route-table-dev"
                 }
               },
               "Role": {
@@ -409,7 +431,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/Food-miles/dev/1677242725608-2023-02-24T12:45:25.608Z/Food-miles.zip"
+                "S3Key": "serverless/Food-miles/dev/1677618489939-2023-02-28T21:08:09.939Z/Food-miles.zip"
               },
               "Handler": "s_apiSavedList.handler",
               "Runtime": "python3.9",
@@ -421,7 +443,8 @@
                   "USERS_TABLE": "users-table-dev",
                   "ITEM_TABLE": "item-table-dev",
                   "SHOPPING_LIST_TABLE": "shopping-list-table-dev",
-                  "SAVED_LIST_TABLE": "saved-list-table-dev"
+                  "SAVED_LIST_TABLE": "saved-list-table-dev",
+                  "ROUTE_TABLE": "route-table-dev"
                 }
               },
               "Role": {
@@ -435,44 +458,88 @@
               "ApiSavedListLogGroup"
             ]
           },
-          "ApiLambdaVersionwsGuavKGjTsTDPW7o3sF1JREYrJOpuCzTG03mdQgY": {
+          "ApiRouteLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/Food-miles/dev/1677618489939-2023-02-28T21:08:09.939Z/Food-miles.zip"
+              },
+              "Handler": "s_apiRoute.handler",
+              "Runtime": "python3.9",
+              "FunctionName": "Food-miles-dev-apiRoute",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev",
+                  "ITEM_TABLE": "item-table-dev",
+                  "SHOPPING_LIST_TABLE": "shopping-list-table-dev",
+                  "SAVED_LIST_TABLE": "saved-list-table-dev",
+                  "ROUTE_TABLE": "route-table-dev"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ApiRouteLogGroup"
+            ]
+          },
+          "ApiLambdaVersionnErdZaf103fhHB9J7LJVbioClzV4lIUaLNs5UxQ0Y": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "Sk3vR3VUMhM19cCglgiAOQnA1WZzYJOWDwv1MQCmLd4="
+              "CodeSha256": "6hAojzgCnx57jarIC/PZMAnfu32iZ4wluI6G3qsGVNg="
             }
           },
-          "ApiFoodLambdaVersioniOyFfIs5oOxcekZnJnDxeeBhOONJkKuHmO0mmNzK4": {
+          "ApiFoodLambdaVersionrZruH2MrumbhvLhxa1U07YZSVcizeNchrfDF5SIWifU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiFoodLambdaFunction"
               },
-              "CodeSha256": "Sk3vR3VUMhM19cCglgiAOQnA1WZzYJOWDwv1MQCmLd4="
+              "CodeSha256": "6hAojzgCnx57jarIC/PZMAnfu32iZ4wluI6G3qsGVNg="
             }
           },
-          "ApiShoppingListLambdaVersionX8Lbq9Ky2BZzxqHlNt2i9FXzHX9UL8h6KXKsROvovk": {
+          "ApiShoppingListLambdaVersion8nwxOISV2rtwVQ3g93WTJYXupbNlRCsQ3Ryqb6PU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiShoppingListLambdaFunction"
               },
-              "CodeSha256": "Sk3vR3VUMhM19cCglgiAOQnA1WZzYJOWDwv1MQCmLd4="
+              "CodeSha256": "6hAojzgCnx57jarIC/PZMAnfu32iZ4wluI6G3qsGVNg="
             }
           },
-          "ApiSavedListLambdaVersionzstYUn6djwSpSoiYR0LToqofbIkTFNWjyEl24Ud05Rc": {
+          "ApiSavedListLambdaVersionZbfAiSm2TtztTP71QZ5kJSPFAI1rKE1whLdpF7m1v4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiSavedListLambdaFunction"
               },
-              "CodeSha256": "Sk3vR3VUMhM19cCglgiAOQnA1WZzYJOWDwv1MQCmLd4="
+              "CodeSha256": "6hAojzgCnx57jarIC/PZMAnfu32iZ4wluI6G3qsGVNg="
+            }
+          },
+          "ApiRouteLambdaVersion0q6BrFXQlxmrDRt4rIocty1teM1YQKlfoQTycFaJo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ApiRouteLambdaFunction"
+              },
+              "CodeSha256": "6hAojzgCnx57jarIC/PZMAnfu32iZ4wluI6G3qsGVNg="
             }
           },
           "HttpApi": {
@@ -822,6 +889,78 @@
             },
             "DependsOn": "HttpApiIntegrationApiSavedList"
           },
+          "ApiRouteLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ApiRouteLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationApiRoute": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ApiRouteLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteAnyRoute": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "ANY /route",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApiRoute"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApiRoute"
+          },
           "UsersTable": {
             "Type": "AWS::DynamoDB::Table",
             "Properties": {
@@ -934,6 +1073,36 @@
               }
             }
           },
+          "RouteTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "route-table-dev",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "origin",
+                  "AttributeType": "S"
+                },
+                {
+                  "AttributeName": "destination",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "origin",
+                  "KeyType": "HASH"
+                },
+                {
+                  "AttributeName": "destination",
+                  "KeyType": "RANGE"
+                }
+              ],
+              "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+              }
+            }
+          },
           "CWLSubFilterApiLogGroupUsEast1": {
             "Type": "AWS::Logs::SubscriptionFilter",
             "Properties": {
@@ -974,6 +1143,16 @@
               }
             }
           },
+          "CWLSubFilterApiRouteLogGroupUsEast1": {
+            "Type": "AWS::Logs::SubscriptionFilter",
+            "Properties": {
+              "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:161894bc-93b3-4323-bfb4-686199970354#G8d2nvBDvygNRLT6Zx#Food-miles#dev",
+              "FilterPattern": "?\"REPORT RequestId: \" ?\"SERVERLESS_ENTERPRISE\"",
+              "LogGroupName": {
+                "Ref": "ApiRouteLogGroup"
+              }
+            }
+          },
           "CWLSubFilterHttpApiLogGroupUsEast1": {
             "Type": "AWS::Logs::SubscriptionFilter",
             "Properties": {
@@ -1008,7 +1187,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionwsGuavKGjTsTDPW7o3sF1JREYrJOpuCzTG03mdQgY"
+              "Ref": "ApiLambdaVersionnErdZaf103fhHB9J7LJVbioClzV4lIUaLNs5UxQ0Y"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiLambdaFunctionQualifiedArn"
@@ -1017,7 +1196,7 @@
           "ApiFoodLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiFoodLambdaVersioniOyFfIs5oOxcekZnJnDxeeBhOONJkKuHmO0mmNzK4"
+              "Ref": "ApiFoodLambdaVersionrZruH2MrumbhvLhxa1U07YZSVcizeNchrfDF5SIWifU"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiFoodLambdaFunctionQualifiedArn"
@@ -1026,7 +1205,7 @@
           "ApiShoppingListLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiShoppingListLambdaVersionX8Lbq9Ky2BZzxqHlNt2i9FXzHX9UL8h6KXKsROvovk"
+              "Ref": "ApiShoppingListLambdaVersion8nwxOISV2rtwVQ3g93WTJYXupbNlRCsQ3Ryqb6PU"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiShoppingListLambdaFunctionQualifiedArn"
@@ -1035,10 +1214,19 @@
           "ApiSavedListLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiSavedListLambdaVersionzstYUn6djwSpSoiYR0LToqofbIkTFNWjyEl24Ud05Rc"
+              "Ref": "ApiSavedListLambdaVersionZbfAiSm2TtztTP71QZ5kJSPFAI1rKE1whLdpF7m1v4"
             },
             "Export": {
               "Name": "sls-Food-miles-dev-ApiSavedListLambdaFunctionQualifiedArn"
+            }
+          },
+          "ApiRouteLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ApiRouteLambdaVersion0q6BrFXQlxmrDRt4rIocty1teM1YQKlfoQTycFaJo"
+            },
+            "Export": {
+              "Name": "sls-Food-miles-dev-ApiRouteLambdaFunctionQualifiedArn"
             }
           },
           "HttpApiId": {
@@ -1171,6 +1359,7 @@
       "itemTableName": "item-table-dev",
       "shoppingListTableName": "shopping-list-table-dev",
       "savedListTableName": "saved-list-table-dev",
+      "routeTableName": "route-table-dev",
       "wsgi": {
         "app": "app.app"
       }
@@ -1195,7 +1384,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionwsGuavKGjTsTDPW7o3sF1JREYrJOpuCzTG03mdQgY"
+        "versionLogicalId": "ApiLambdaVersionnErdZaf103fhHB9J7LJVbioClzV4lIUaLNs5UxQ0Y"
       },
       "apiFood": {
         "handler": "s_apiFood.handler",
@@ -1215,7 +1404,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiFoodLambdaVersioniOyFfIs5oOxcekZnJnDxeeBhOONJkKuHmO0mmNzK4"
+        "versionLogicalId": "ApiFoodLambdaVersionrZruH2MrumbhvLhxa1U07YZSVcizeNchrfDF5SIWifU"
       },
       "apiShoppingList": {
         "handler": "s_apiShoppingList.handler",
@@ -1235,7 +1424,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiShoppingListLambdaVersionX8Lbq9Ky2BZzxqHlNt2i9FXzHX9UL8h6KXKsROvovk"
+        "versionLogicalId": "ApiShoppingListLambdaVersion8nwxOISV2rtwVQ3g93WTJYXupbNlRCsQ3Ryqb6PU"
       },
       "apiSavedList": {
         "handler": "s_apiSavedList.handler",
@@ -1255,7 +1444,27 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiSavedListLambdaVersionzstYUn6djwSpSoiYR0LToqofbIkTFNWjyEl24Ud05Rc"
+        "versionLogicalId": "ApiSavedListLambdaVersionZbfAiSm2TtztTP71QZ5kJSPFAI1rKE1whLdpF7m1v4"
+      },
+      "apiRoute": {
+        "handler": "s_apiRoute.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/route",
+              "method": "ANY"
+            },
+            "resolvedMethod": "ANY",
+            "resolvedPath": "/route"
+          }
+        ],
+        "name": "Food-miles-dev-apiRoute",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "python3.9",
+        "vpc": {},
+        "versionLogicalId": "ApiRouteLambdaVersion0q6BrFXQlxmrDRt4rIocty1teM1YQKlfoQTycFaJo"
       }
     },
     "resources": {
@@ -1371,6 +1580,36 @@
               "WriteCapacityUnits": 1
             }
           }
+        },
+        "RouteTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "route-table-dev",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "origin",
+                "AttributeType": "S"
+              },
+              {
+                "AttributeName": "destination",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "origin",
+                "KeyType": "HASH"
+              },
+              {
+                "AttributeName": "destination",
+                "KeyType": "RANGE"
+              }
+            ],
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": 1,
+              "WriteCapacityUnits": 1
+            }
+          }
         }
       },
       "Outputs": {}
@@ -1408,7 +1647,7 @@
     "artifact": "C:\\Users\\Caoimhe\\OneDrive - National University of Ireland, Galway\\Third Year\\FYP\\Food-miles\\.serverless\\Food-miles.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/Food-miles/dev/1677242725608-2023-02-24T12:45:25.608Z",
+    "artifactDirectoryName": "serverless/Food-miles/dev/1677618489939-2023-02-28T21:08:09.939Z",
     "artifact": "Food-miles.zip"
   }
 }
