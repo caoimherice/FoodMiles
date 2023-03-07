@@ -53,15 +53,15 @@ def create_user():
 def create_item():
     name = request.json.get('name')
     origin = request.json.get('origin')
-    miles = request.json.get('miles')
-    if not name or not origin or not miles:
-        return jsonify({'error': 'Please provide both "name" and "origin" and "miles"'}), 400
-
+    legs = request.json.get('legs')
+    if not name or not origin or not legs:
+        return jsonify({'error': 'Please provide both "name" and "origin" and "legs"'}), 400
+    # This code converts each leg dictionary in the legs list into a map that contains origin and destination as keys and the corresponding values as strings (S type). Then, it creates a new list legs_dynamodb that contains these maps wrapped in M type. Finally, it passes this list to DynamoDB as the value of the legs attribute of the Item dictionary.
+    legs_dynamodb = [{'M': {'origin': {'S': leg['origin']}, 'destination': {'S': leg['destination']}}} for leg in legs]
     dynamodb_client.put_item(
-        TableName=ITEM_TABLE, Item={'name': {'S': name}, 'origin': {'S': origin}, 'miles': {'S': miles}}
+        TableName=ITEM_TABLE, Item={'name': {'S': name}, 'origin': {'S': origin}, 'legs': {'L': legs_dynamodb}}
     )
-
-    return jsonify({'name': name, 'origin': origin, 'miles': miles})
+    return jsonify({'name': name, 'origin': origin, 'legs': legs})
 
 
 @app.route('/food/item/<string:name>/<string:origin>')
@@ -72,9 +72,10 @@ def get_item(name, origin):
     item = result.get('Item')
     if not item:
         return jsonify({'error': 'Could not find food item with provided "name and origin"'}), 404
-
+    legs_dynamodb = item['legs']['L']
+    legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in legs_dynamodb]
     return jsonify(
-        {'name': item.get('name').get('S'), 'origin': item.get('origin').get('S'), 'miles': item.get('miles').get('S')}
+        {'name': item.get('name').get('S'), 'origin': item.get('origin').get('S'), 'legs': legs}
     )
 
 
@@ -86,11 +87,9 @@ def add_item():
     itemId = name + ',' + origin
     if not name or not origin or not userId:
         return jsonify({'error': 'Please provide both "name" and "origin" and "userId"'}), 400
-
     dynamodb_client.put_item(
         TableName=SHOPPING_LIST_TABLE, Item={'userId': {'S': userId}, 'itemId': {'S': itemId}}
     )
-
     return jsonify({'userId': userId, 'itemId': itemId})
 
 
@@ -217,7 +216,7 @@ def add_route():
     if not origin or not destination or not origin_lat_lng or not destination_lat_lng or not lead_time or not transport_mode or not distance or not emissions or not coordinates:
         return jsonify({'error': 'Please provide all required attributes'}), 400
     dynamodb_client.put_item(
-        TableName=ROUTE_TABLE, Item={'origin': {'S': origin}, 'destination': {'S': destination}, 'origin_lat_lng': {'S': origin_lat_lng}, 'destination_lat_lng': {'S': destination_lat_lng}, 'lead_time': {'S': lead_time}, 'distance': {'S': distance}, 'emissions': {'S': emissions}, 'coordinates': {'L': coordinates}}
+        TableName=ROUTE_TABLE, Item={'origin': {'S': origin}, 'destination': {'S': destination}, 'origin_lat_lng': {'S': origin_lat_lng}, 'destination_lat_lng': {'S': destination_lat_lng}, 'lead_time': {'S': lead_time}, 'transport_mode': {'S': transport_mode}, 'distance': {'S': distance}, 'emissions': {'S': emissions}, 'coordinates': {'L': coordinates}}
     )
     return jsonify({'message': 'Route added successfully'})
 
@@ -235,7 +234,7 @@ def get_route(origin, destination):
     for coord in item.get('coordinates').get('L'):
         coordinates.append([float(coord['L'][0]['N']), float(coord['L'][1]['N'])])
     return jsonify(
-        {'origin': item.get('origin').get('S'), 'destination': item.get('destination').get('S'), 'origin_lat_lng': item.get('origin_lat_lng').get('S'), 'destination_lat_lng': item.get('destination_lat_lng').get('S'), 'lead_time': item.get('lead_time').get('S'), 'distance': item.get('distance').get('S'), 'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
+        {'origin': item.get('origin').get('S'), 'destination': item.get('destination').get('S'), 'origin_lat_lng': item.get('origin_lat_lng').get('S'), 'destination_lat_lng': item.get('destination_lat_lng').get('S'), 'lead_time': item.get('lead_time').get('S'), 'transport_mode': item.get('transport_mode').get('S'), 'distance': item.get('distance').get('S'), 'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
     )
 
 
