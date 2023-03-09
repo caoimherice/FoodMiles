@@ -305,25 +305,48 @@ def add_route():
     return jsonify({'message': 'Route added successfully'})
 
 
-@app.route('/route/<string:origin>/<string:destination>', methods=['GET'])
-def get_route(origin, destination):
+@app.route('/route/<string:name>/<string:origin>', methods=['GET'])
+def get_route(name, origin):
     result = dynamodb_client.get_item(
-        TableName=ROUTE_TABLE, Key={'origin': {'S': origin}, 'destination': {'S': destination}}
+        TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
     )
     item = result.get('Item')
     if not item:
-        return jsonify({'error': 'Could not find route with provided "origin" and "destination"'}), 404
-
-    coordinates = []
-    for coord in item.get('coordinates').get('L'):
-        coordinates.append([float(coord['L'][0]['N']), float(coord['L'][1]['N'])])
-    return jsonify(
-        {'origin': item.get('origin').get('S'), 'destination': item.get('destination').get('S'),
-         'origin_lat_lng': item.get('origin_lat_lng').get('S'),
-         'destination_lat_lng': item.get('destination_lat_lng').get('S'), 'lead_time': item.get('lead_time').get('S'),
-         'transport_mode': item.get('transport_mode').get('S'), 'distance': item.get('distance').get('S'),
-         'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
-    )
+        return jsonify({'error': 'Could not find food item with provided "name and origin"'}), 404
+    legs_dynamodb = item['legs']['L']
+    legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in legs_dynamodb]
+    items = []
+    distance = 0
+    emissions = 0
+    lead_time = 0
+    points = set()
+    for leg in legs:
+        route_origin = leg.get('origin')
+        route_destination = leg.get('destination')
+        route_result = dynamodb_client.get_item(
+            TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
+        )
+        item = route_result.get('Item')
+        if not item:
+            return jsonify({'error': 'Could not find route with provided "origin" and "destination"'}), 404
+        coordinates = []
+        for coord in item.get('coordinates').get('L'):
+            coordinates.append([float(coord['L'][0]['N']), float(coord['L'][1]['N'])])
+        items.append(
+            {'origin': item.get('origin').get('S'), 'destination': item.get('destination').get('S'),
+             'origin_lat_lng': item.get('origin_lat_lng').get('S'),
+             'destination_lat_lng': item.get('destination_lat_lng').get('S'),
+             'lead_time': item.get('lead_time').get('S'),
+             'transport_mode': item.get('transport_mode').get('S'), 'distance': item.get('distance').get('S'),
+             'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
+        )
+        points.add(item.get('origin_lat_lng').get('S'))
+        points.add(item.get('destination_lat_lng').get('S'))
+        distance += int(item.get('distance').get('S'))
+        emissions += int(item.get('emissions').get('S'))
+        lead_time += int(item.get('lead_time').get('S'))
+    return jsonify(items, {'total_distance': distance}, {'total_emissions': emissions},
+                   {'total_lead_time': lead_time}, {'points': list(points)}, {'name': name}, {'origin': origin})
 
     # items = []
     # items_list = []
