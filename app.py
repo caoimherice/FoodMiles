@@ -218,6 +218,9 @@ def get_saved_list(userId):
             ':userId': {'S': userId}
         }
     )
+    total_distance = 0
+    total_emissions = 0
+    total_lead_time = 0
     items = []
     for item in result['Items']:
         items_list = item['items']['L']
@@ -225,9 +228,43 @@ def get_saved_list(userId):
         # items.append({'createdAt': item['createdAt']['S']})
         new_list = []
         for i in items_list:
+            name = i['M']['itemId']['S'].split(',')[0]
+            origin = i['M']['itemId']['S'].split(',')[1]
+            item_result = dynamodb_client.get_item(
+                TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
+            )
+            item_details = item_result.get('Item')
+            if not item_details:
+                return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
+            legs_dynamodb = item_details['legs']['L']
+            legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in
+                    legs_dynamodb]
+            distance = 0
+            emissions = 0
+            lead_time = 0
+            for leg in legs:
+                route_origin = leg.get('origin')
+                route_destination = leg.get('destination')
+                route_result = dynamodb_client.get_item(
+                    TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
+                )
+                route = route_result.get('Item')
+                if not route:
+                    return jsonify({
+                                       'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
+                distance += int(route.get('distance').get('S'))
+                emissions += int(route.get('emissions').get('S'))
+                lead_time += int(route.get('lead_time').get('S'))
             new_list.append({
-                'itemId': i['M']['itemId']['S']
+                'name': name,
+                'origin': origin,
+                'distance': distance,
+                'emissions': emissions,
+                'lead_time': lead_time,
             })
+            total_distance += distance
+            total_emissions += emissions
+            total_lead_time += lead_time
             # new_list.append({
             #     'itemId': {
             #         'name': i['M']['itemDetails']['M']['name']['S'],
@@ -236,6 +273,9 @@ def get_saved_list(userId):
             #     }
             # })
             new_item.update({'items_list': new_list})
+            new_item.update({'total_distance': total_distance})
+            new_item.update({'total_emissions': total_emissions})
+            new_item.update({'total_lead_time': total_lead_time})
         items.append(new_item)
     return jsonify(items)
 
