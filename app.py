@@ -94,6 +94,20 @@ def add_item():
     return jsonify({'userId': userId, 'itemId': itemId})
 
 
+@app.route('/shoppingList/delete', methods=['DELETE'])
+def delete_item():
+    userId = request.json.get('userId')
+    name = str(request.json.get('name'))
+    origin = str(request.json.get('origin'))
+    itemId = name + ',' + origin
+    if not name or not origin or not userId:
+        return jsonify({'error': 'Please provide both "name" and "origin" and "userId"'}), 400
+    dynamodb_client.delete_item(
+        TableName=SHOPPING_LIST_TABLE, Key={'userId': {'S': userId}, 'itemId': {'S': itemId}}
+    )
+    return jsonify({'message': 'Item deleted successfully'})
+
+
 # @app.route('/shoppingList/item/<string:userId>')
 # def get_list(userId):
 #     result = dynamodb_client.query(
