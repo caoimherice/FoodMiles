@@ -201,6 +201,15 @@ def add_list():
         # TableName=SAVED_LIST_TABLE, Item={'userId': {'S': userId}, 'createdAt': {'S': current_time}}
         TableName=SAVED_LIST_TABLE, Item=new_item
     )
+    for item in items:
+        item_id = item.get('itemId')
+        dynamodb_client.delete_item(
+            TableName=SHOPPING_LIST_TABLE,
+            Key={
+                'userId': {'S': userId},
+                'itemId': {'S': item_id}
+            }
+        )
 
     # Return a response with the saved user ID, creation time, and items
     # response = {'userId': userId, 'createdAt': current_time, 'items': items}
