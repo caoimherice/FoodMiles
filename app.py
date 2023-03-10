@@ -83,8 +83,8 @@ def get_item(name, origin):
 @app.route('/shoppingList/item', methods=['POST'])
 def add_item():
     userId = request.json.get('userId')
-    name = request.json.get('name')
-    origin = request.json.get('origin')
+    name = str(request.json.get('name'))
+    origin = str(request.json.get('origin'))
     itemId = name + ',' + origin
     if not name or not origin or not userId:
         return jsonify({'error': 'Please provide both "name" and "origin" and "userId"'}), 400
@@ -194,7 +194,7 @@ def add_list():
     # # Add each item to the "items" list
     for item in items:
         item_id = {
-            'itemId': {'S': item.get('itemId')},
+            'itemId': {'S': item.get('itemId').get('S')},
         }
         new_item['items']['L'].append({'M': item_id})
     dynamodb_client.put_item(
@@ -202,7 +202,7 @@ def add_list():
         TableName=SAVED_LIST_TABLE, Item=new_item
     )
     for item in items:
-        item_id = item.get('itemId')
+        item_id = item.get('itemId').get('S')
         dynamodb_client.delete_item(
             TableName=SHOPPING_LIST_TABLE,
             Key={
@@ -227,11 +227,11 @@ def get_saved_list(userId):
             ':userId': {'S': userId}
         }
     )
-    total_distance = 0
-    total_emissions = 0
-    total_lead_time = 0
     items = []
     for item in result['Items']:
+        total_distance = 0
+        total_emissions = 0
+        total_lead_time = 0
         items_list = item['items']['L']
         new_item = {'createdAt': item['createdAt']['S']}
         # items.append({'createdAt': item['createdAt']['S']})
