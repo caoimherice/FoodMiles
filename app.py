@@ -342,7 +342,7 @@ def get_route(name, origin):
     distance = 0
     emissions = 0
     lead_time = 0
-    points = set()
+    points = []
     for leg in legs:
         route_origin = leg.get('origin')
         route_destination = leg.get('destination')
@@ -363,8 +363,12 @@ def get_route(name, origin):
              'transport_mode': item.get('transport_mode').get('S'), 'distance': item.get('distance').get('S'),
              'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
         )
-        points.add(item.get('origin_lat_lng').get('S'))
-        points.add(item.get('destination_lat_lng').get('S'))
+        origin_lat_lng = item.get('origin_lat_lng').get('S')
+        destination_lat_lng = item.get('destination_lat_lng').get('S')
+        if origin_lat_lng not in points:
+            points.append(origin_lat_lng)
+        if destination_lat_lng not in points:
+            points.append(destination_lat_lng)
         distance += int(item.get('distance').get('S'))
         emissions += int(item.get('emissions').get('S'))
         lead_time += int(item.get('lead_time').get('S'))
