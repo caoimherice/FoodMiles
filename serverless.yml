@@ -18,6 +18,7 @@ provider:
   httpApi:
     cors: true
   runtime: python3.9
+  timeout: 900
   iam:
     role:
       statements:
