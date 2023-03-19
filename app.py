@@ -131,7 +131,7 @@ def get_list_details(userId):
             route = route_result.get('Item')
             if not route:
                 return jsonify({'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
-            distance += int(route.get('distance').get('S'))
+            distance += round(int(route.get('distance').get('S'))/1000, 2)
             emissions += int(route.get('emissions').get('S'))
             lead_time += int(route.get('lead_time').get('S'))
         item['itemDetails'] = {
@@ -234,7 +234,7 @@ def get_saved_list(userId):
                 if not route:
                     return jsonify({
                                        'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
-                distance += int(route.get('distance').get('S'))
+                distance += round(int(route.get('distance').get('S'))/1000, 2)
                 emissions += int(route.get('emissions').get('S'))
                 lead_time += int(route.get('lead_time').get('S'))
             new_list.append({
@@ -312,7 +312,7 @@ def get_route(name, origin):
              'origin_lat_lng': item.get('origin_lat_lng').get('S'),
              'destination_lat_lng': item.get('destination_lat_lng').get('S'),
              'lead_time': item.get('lead_time').get('S'),
-             'transport_mode': item.get('transport_mode').get('S'), 'distance': item.get('distance').get('S'),
+             'transport_mode': item.get('transport_mode').get('S'), 'distance': round(int(item.get('distance').get('S'))/1000, 2),
              'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
         )
         origin_lat_lng = item.get('origin_lat_lng').get('S')
@@ -321,7 +321,7 @@ def get_route(name, origin):
             points.append(origin_lat_lng)
         if destination_lat_lng not in points:
             points.append(destination_lat_lng)
-        distance += int(item.get('distance').get('S'))
+        distance += round(int(item.get('distance').get('S'))/1000, 2)
         emissions += int(item.get('emissions').get('S'))
         lead_time += int(item.get('lead_time').get('S'))
     return jsonify(items, {'total_distance': distance}, {'total_emissions': emissions},
