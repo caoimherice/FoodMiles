@@ -1,6 +1,7 @@
 import os
 import boto3
 import datetime
+import asyncio
 from flask import Flask, jsonify, make_response, request
 
 app = Flask(__name__)
@@ -192,7 +193,71 @@ def add_list():
 
 
 @app.route('/savedList/list/<string:userId>', methods=['GET'])
-def get_saved_list(userId):
+# def get_saved_list(userId):
+#     result = dynamodb_client.query(
+#         TableName=SAVED_LIST_TABLE,
+#         KeyConditionExpression='userId = :userId',
+#         ExpressionAttributeValues={
+#             ':userId': {'S': userId}
+#         }
+#     )
+#     items = []
+#     for item in result['Items']:
+#         total_distance = 0
+#         total_emissions = 0
+#         total_lead_time = 0
+#         items_list = item['items']['L']
+#         new_item = {'createdAt': item['createdAt']['S']}
+#         # items.append({'createdAt': item['createdAt']['S']})
+#         new_list = []
+#         for i in items_list:
+#             name = i['M']['itemId']['S'].split(',')[0]
+#             origin = i['M']['itemId']['S'].split(',')[1]
+#             item_result = dynamodb_client.get_item(
+#                 TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
+#             )
+#             item_details = item_result.get('Item')
+#             if not item_details:
+#                 return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
+#             legs_dynamodb = item_details['legs']['L']
+#             legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in
+#                     legs_dynamodb]
+#             distance = 0
+#             emissions = 0
+#             lead_time = 0
+#             for leg in legs:
+#                 route_origin = leg.get('origin')
+#                 route_destination = leg.get('destination')
+#                 print('Start of get route function for: ', leg, 'for the item: ', i)
+#                 route_result = dynamodb_client.get_item(
+#                     TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
+#                 )
+#                 print('Finish of get route function for: ', leg, 'for the item: ', i)
+#                 route = route_result.get('Item')
+#                 if not route:
+#                     return jsonify({
+#                                        'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
+#                 distance += round(int(route.get('distance').get('S'))/1000, 2)
+#                 emissions += int(route.get('emissions').get('S'))
+#                 lead_time += int(route.get('lead_time').get('S'))
+#             new_list.append({
+#                 'name': name,
+#                 'origin': origin,
+#                 'distance': distance,
+#                 'emissions': emissions,
+#                 'lead_time': lead_time,
+#             })
+#             total_distance += distance
+#             total_emissions += emissions
+#             total_lead_time += lead_time
+#             new_item.update({'items_list': new_list})
+#             new_item.update({'total_distance': total_distance})
+#             new_item.update({'total_emissions': total_emissions})
+#             new_item.update({'total_lead_time': total_lead_time})
+#         items.append(new_item)
+#     return jsonify(items)
+async def get_saved_list(userId):
+    print('Start of function')
     result = dynamodb_client.query(
         TableName=SAVED_LIST_TABLE,
         KeyConditionExpression='userId = :userId',
@@ -200,59 +265,92 @@ def get_saved_list(userId):
             ':userId': {'S': userId}
         }
     )
-    items = []
-    for item in result['Items']:
+    print('Result of saved items call: ', result)
+    saved_lists = []
+    for saved_list in result['Items']:
+        saved_items = saved_list['items']['L']
+
+        print('Start of async get items')
+        items = await asyncio.gather(*[create_list_item(item) for item in saved_items])
+        print('Finish of async get items')
+
         total_distance = 0
         total_emissions = 0
         total_lead_time = 0
-        items_list = item['items']['L']
-        new_item = {'createdAt': item['createdAt']['S']}
-        # items.append({'createdAt': item['createdAt']['S']})
-        new_list = []
-        for i in items_list:
-            name = i['M']['itemId']['S'].split(',')[0]
-            origin = i['M']['itemId']['S'].split(',')[1]
-            item_result = dynamodb_client.get_item(
-                TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
-            )
-            item_details = item_result.get('Item')
-            if not item_details:
-                return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
-            legs_dynamodb = item_details['legs']['L']
-            legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in
-                    legs_dynamodb]
-            distance = 0
-            emissions = 0
-            lead_time = 0
-            for leg in legs:
-                route_origin = leg.get('origin')
-                route_destination = leg.get('destination')
-                route_result = dynamodb_client.get_item(
-                    TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
-                )
-                route = route_result.get('Item')
-                if not route:
-                    return jsonify({
-                                       'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
-                distance += int(route.get('distance').get('S'))
-                emissions += int(route.get('emissions').get('S'))
-                lead_time += int(route.get('lead_time').get('S'))
-            new_list.append({
-                'name': name,
-                'origin': origin,
-                'distance': distance,
-                'emissions': emissions,
-                'lead_time': lead_time,
-            })
-            total_distance += distance
-            total_emissions += emissions
-            total_lead_time += lead_time
-            new_item.update({'items_list': new_list})
-            new_item.update({'total_distance': total_distance})
-            new_item.update({'total_emissions': total_emissions})
-            new_item.update({'total_lead_time': total_lead_time})
-        items.append(new_item)
-    return jsonify(items)
+
+        for item in items:
+            total_distance += item['distance']
+            total_emissions += item['emissions']
+            total_lead_time += item['lead_time']
+
+        shopping_list = {
+            'createdAt': saved_list['createdAt']['S'],
+            'items_list': items,
+            'total_distance': total_distance,
+            'total_emissions': total_emissions,
+            'total_lead_time': total_lead_time
+        }
+
+        saved_lists.append(shopping_list)
+
+    print('Finish of function')
+    return jsonify(saved_lists)
+
+
+async def create_list_item(item):
+    print('Start of get item function for: ', item)
+    name = item['M']['itemId']['S'].split(',')[0]
+    origin = item['M']['itemId']['S'].split(',')[1]
+    print('Start of item query')
+    result = dynamodb_client.get_item(
+        TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
+    )
+    print('Finish of item query')
+    saved_item = result['Item']
+    if not saved_item:
+        return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
+
+    legs = saved_item['legs']['L']
+
+    print('Start of async get legs')
+    routes = await asyncio.gather(*[get_route_info(leg) for leg in legs])
+    print('Finish of async get legs')
+
+    distance = 0
+    emissions = 0
+    lead_time = 0
+
+    for route in routes:
+        distance += int(route['distance']['S'])
+        emissions += int(route['emissions']['S'])
+        lead_time += int(route['lead_time']['S'])
+
+    print('Finish of get item function for: ', item)
+    return {
+        'name': saved_item['name']['S'],
+        'origin': saved_item['origin']['S'],
+        'distance': distance,
+        'emissions': emissions,
+        'lead_time': lead_time,
+    }
+
+
+async def get_route_info(leg):
+    print('Start of get route function for: ', leg)
+    route_origin = leg['M']['origin']['S']
+    route_destination = leg['M']['destination']['S']
+
+    print('Start of route query')
+    route_result = dynamodb_client.get_item(
+        TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
+    )
+    print('Finish of route query')
+    route = route_result.get('Item')
+    if not route:
+        return jsonify({
+            'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
+    print('Finish of get route function for: ', leg)
+    return route
 
 
 @app.route('/route', methods=['POST'])
@@ -312,7 +410,7 @@ def get_route(name, origin):
              'origin_lat_lng': item.get('origin_lat_lng').get('S'),
              'destination_lat_lng': item.get('destination_lat_lng').get('S'),
              'lead_time': item.get('lead_time').get('S'),
-             'transport_mode': item.get('transport_mode').get('S'), 'distance': item.get('distance').get('S'),
+             'transport_mode': item.get('transport_mode').get('S'), 'distance': (item.get('distance').get('S')),
              'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
         )
         origin_lat_lng = item.get('origin_lat_lng').get('S')
