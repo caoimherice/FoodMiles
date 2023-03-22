@@ -132,7 +132,7 @@ def get_list_details(userId):
             route = route_result.get('Item')
             if not route:
                 return jsonify({'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
-            distance += round(int(route.get('distance').get('S'))/1000, 2)
+            distance += int(route.get('distance').get('S'))
             emissions += int(route.get('emissions').get('S'))
             lead_time += int(route.get('lead_time').get('S'))
         item['itemDetails'] = {
@@ -321,14 +321,14 @@ async def create_list_item(item):
     lead_time = 0
 
     for route in routes:
-        distance += round(int(route['distance']['S']) / 1000, 2)
+        distance += int(route['distance']['S'])
         emissions += int(route['emissions']['S'])
         lead_time += int(route['lead_time']['S'])
 
     print('Finish of get item function for: ', item)
     return {
-        'name': saved_item['name'],
-        'origin': saved_item['origin'],
+        'name': saved_item['name']['S'],
+        'origin': saved_item['origin']['S'],
         'distance': distance,
         'emissions': emissions,
         'lead_time': lead_time,
@@ -410,7 +410,7 @@ def get_route(name, origin):
              'origin_lat_lng': item.get('origin_lat_lng').get('S'),
              'destination_lat_lng': item.get('destination_lat_lng').get('S'),
              'lead_time': item.get('lead_time').get('S'),
-             'transport_mode': item.get('transport_mode').get('S'), 'distance': round(int(item.get('distance').get('S'))/1000, 2),
+             'transport_mode': item.get('transport_mode').get('S'), 'distance': (item.get('distance').get('S')),
              'emissions': item.get('emissions').get('S'), 'coordinates': coordinates}
         )
         origin_lat_lng = item.get('origin_lat_lng').get('S')
@@ -419,7 +419,7 @@ def get_route(name, origin):
             points.append(origin_lat_lng)
         if destination_lat_lng not in points:
             points.append(destination_lat_lng)
-        distance += round(int(item.get('distance').get('S'))/1000, 2)
+        distance += int(item.get('distance').get('S'))
         emissions += int(item.get('emissions').get('S'))
         lead_time += int(item.get('lead_time').get('S'))
     return jsonify(items, {'total_distance': distance}, {'total_emissions': emissions},
