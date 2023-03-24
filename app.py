@@ -380,12 +380,16 @@ def add_route():
 
 @app.route('/route/<string:name>/<string:origin>', methods=['GET'])
 def get_route(name, origin):
+    name = capitalize_first_letter(name)
+    origin = capitalize_first_letter(origin)
     result = dynamodb_client.get_item(
         TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
     )
     item = result.get('Item')
     if not item:
-        return jsonify({'error': 'Could not find food item with provided "name and origin"'}), 404
+        suggestions = get_suggestions(name, origin)
+        return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"',
+                        'suggestions': suggestions}), 404
     legs_dynamodb = item['legs']['L']
     legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in legs_dynamodb]
     items = []
@@ -424,6 +428,34 @@ def get_route(name, origin):
         lead_time += int(item.get('lead_time').get('S'))
     return jsonify(items, {'total_distance': distance}, {'total_emissions': emissions},
                    {'total_lead_time': lead_time}, {'points': list(points)}, {'name': name}, {'origin': origin})
+
+
+def capitalize_first_letter(s):
+    return s[0].upper() + s[1:]
+
+
+def get_suggestions(name, origin):
+    # Implement your logic to get suggestions based on the name and origin
+    # For example, you can query your database for items with the same name or the same origin
+    # Return a list of suggestions (e.g., [{'name': 'Suggestion 1', 'origin': 'Origin 1'}, ...])
+    result = dynamodb_client.scan(
+        TableName=ITEM_TABLE,
+        FilterExpression='#name = :name OR origin = :origin',
+        ExpressionAttributeValues={
+            ':name': {'S': name},
+            ':origin': {'S': origin}
+        },
+        ExpressionAttributeNames={
+            '#name': 'name'
+        }
+    )
+    items = result.get('Items')
+    suggestions = []
+    for item in items:
+        suggestions.append({'name': item['name']['S'], 'origin': item['origin']['S']})
+    if not items:
+        return []
+    return suggestions
 
 
 @app.errorhandler(404)
