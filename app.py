@@ -13,7 +13,6 @@ if os.environ.get('IS_OFFLINE'):
         'dynamodb', region_name='localhost', endpoint_url='http://localhost:8000'
     )
 
-USERS_TABLE = os.environ['USERS_TABLE']
 ITEM_TABLE = os.environ['ITEM_TABLE']
 SHOPPING_LIST_TABLE = os.environ['SHOPPING_LIST_TABLE']
 SAVED_LIST_TABLE = os.environ['SAVED_LIST_TABLE']
@@ -27,10 +26,6 @@ def create_item():
     legs = request.json.get('legs')
     if not name or not origin or not legs:
         return jsonify({'error': 'Please provide both "name" and "origin" and "legs"'}), 400
-    # This code converts each leg dictionary in the legs list into a map that contains origin and destination as keys
-    # and the corresponding values as strings (S type). Then, it creates a new list legs_dynamodb that contains these
-    # maps wrapped in M type. Finally, it passes this list to DynamoDB as the value of the legs attribute of the Item
-    # dictionary.
     legs_dynamodb = [{'M': {'origin': {'S': leg['origin']}, 'destination': {'S': leg['destination']}}} for leg in legs]
     dynamodb_client.put_item(
         TableName=ITEM_TABLE, Item={'name': {'S': name}, 'origin': {'S': origin}, 'legs': {'L': legs_dynamodb}}
@@ -81,19 +76,6 @@ def delete_item():
     return jsonify({'message': 'Item deleted successfully'})
 
 
-# @app.route('/shoppingList/item/<string:userId>')
-# def get_list(userId):
-#     result = dynamodb_client.query(
-#         TableName=SHOPPING_LIST_TABLE,
-#         KeyConditionExpression='userId = :userId',
-#         ExpressionAttributeValues={
-#             ':userId': {'S': userId}
-#         }
-#     )
-#     items = result.get("Items")
-#     return jsonify(items)
-
-
 @app.route('/shoppingList/details/<string:userId>')
 def get_list_details(userId):
     result = dynamodb_client.query(
@@ -107,7 +89,6 @@ def get_list_details(userId):
     total_emissions = 0
     total_lead_time = 0
     items = result.get("Items")
-    # iterate through each item in the shopping list and retrieve the item details using get_item()
     for item in items:
         name = item.get('itemId').get('S').split(',')[0]
         origin = item.get('itemId').get('S').split(',')[1]
@@ -154,25 +135,21 @@ def add_list():
     userId = request.json.get('userId')
     if not userId:
         return jsonify({'error': 'Please provide "userId"'}), 400
-        # Get the list of items from the request body
     items = request.json.get('items')
     if not items:
         return jsonify({'error': 'Please provide "items"'}), 400
     current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # Create a new item to be added to the database
     new_item = {
         'userId': {'S': userId},
         'createdAt': {'S': current_time},
         'items': {'L': []}
     }
-    # # Add each item to the "items" list
     for item in items:
         item_id = {
             'itemId': {'S': item.get('itemId').get('S')},
         }
         new_item['items']['L'].append({'M': item_id})
     dynamodb_client.put_item(
-        # TableName=SAVED_LIST_TABLE, Item={'userId': {'S': userId}, 'createdAt': {'S': current_time}}
         TableName=SAVED_LIST_TABLE, Item=new_item
     )
     for item in items:
@@ -184,78 +161,10 @@ def add_list():
                 'itemId': {'S': item_id}
             }
         )
-
-    # Return a response with the saved user ID, creation time, and items
-    # response = {'userId': userId, 'createdAt': current_time, 'items': items}
-    # return jsonify(response)
-    # return jsonify({'userId': userId, 'createdAt': current_time})
     return jsonify({'message': 'Items saved successfully'})
 
 
 @app.route('/savedList/list/<string:userId>', methods=['GET'])
-# def get_saved_list(userId):
-#     result = dynamodb_client.query(
-#         TableName=SAVED_LIST_TABLE,
-#         KeyConditionExpression='userId = :userId',
-#         ExpressionAttributeValues={
-#             ':userId': {'S': userId}
-#         }
-#     )
-#     items = []
-#     for item in result['Items']:
-#         total_distance = 0
-#         total_emissions = 0
-#         total_lead_time = 0
-#         items_list = item['items']['L']
-#         new_item = {'createdAt': item['createdAt']['S']}
-#         # items.append({'createdAt': item['createdAt']['S']})
-#         new_list = []
-#         for i in items_list:
-#             name = i['M']['itemId']['S'].split(',')[0]
-#             origin = i['M']['itemId']['S'].split(',')[1]
-#             item_result = dynamodb_client.get_item(
-#                 TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
-#             )
-#             item_details = item_result.get('Item')
-#             if not item_details:
-#                 return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
-#             legs_dynamodb = item_details['legs']['L']
-#             legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in
-#                     legs_dynamodb]
-#             distance = 0
-#             emissions = 0
-#             lead_time = 0
-#             for leg in legs:
-#                 route_origin = leg.get('origin')
-#                 route_destination = leg.get('destination')
-#                 print('Start of get route function for: ', leg, 'for the item: ', i)
-#                 route_result = dynamodb_client.get_item(
-#                     TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
-#                 )
-#                 print('Finish of get route function for: ', leg, 'for the item: ', i)
-#                 route = route_result.get('Item')
-#                 if not route:
-#                     return jsonify({
-#                                        'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
-#                 distance += round(int(route.get('distance').get('S'))/1000, 2)
-#                 emissions += int(route.get('emissions').get('S'))
-#                 lead_time += int(route.get('lead_time').get('S'))
-#             new_list.append({
-#                 'name': name,
-#                 'origin': origin,
-#                 'distance': distance,
-#                 'emissions': emissions,
-#                 'lead_time': lead_time,
-#             })
-#             total_distance += distance
-#             total_emissions += emissions
-#             total_lead_time += lead_time
-#             new_item.update({'items_list': new_list})
-#             new_item.update({'total_distance': total_distance})
-#             new_item.update({'total_emissions': total_emissions})
-#             new_item.update({'total_lead_time': total_lead_time})
-#         items.append(new_item)
-#     return jsonify(items)
 async def get_saved_list(userId):
     print('Start of function')
     result = dynamodb_client.query(
@@ -435,9 +344,6 @@ def capitalize_first_letter(s):
 
 
 def get_suggestions(name, origin):
-    # Implement your logic to get suggestions based on the name and origin
-    # For example, you can query your database for items with the same name or the same origin
-    # Return a list of suggestions (e.g., [{'name': 'Suggestion 1', 'origin': 'Origin 1'}, ...])
     result = dynamodb_client.scan(
         TableName=ITEM_TABLE,
         FilterExpression='#name = :name OR origin = :origin',
