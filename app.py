@@ -78,6 +78,7 @@ def delete_item():
 
 @app.route('/shoppingList/details/<string:userId>')
 def get_list_details(userId):
+    # get all the items in the shopping list belonging to the user
     result = dynamodb_client.query(
         TableName=SHOPPING_LIST_TABLE,
         KeyConditionExpression='userId = :userId',
@@ -85,13 +86,17 @@ def get_list_details(userId):
             ':userId': {'S': userId}
         }
     )
+    # initialising totals for the whole shopping list
     total_distance = 0
     total_emissions = 0
     total_lead_time = 0
     items = result.get("Items")
+    # for each item in the list
     for item in items:
+        # splitting itemId into name and origin
         name = item.get('itemId').get('S').split(',')[0]
         origin = item.get('itemId').get('S').split(',')[1]
+        # retrieving the item to get the legs of the journey
         item_result = dynamodb_client.get_item(
             TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
         )
@@ -101,9 +106,11 @@ def get_list_details(userId):
         legs_dynamodb = item_details['legs']['L']
         legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in
                 legs_dynamodb]
+        # initialising totals for the food item
         distance = 0
         emissions = 0
         lead_time = 0
+        # for each leg of the journey adding the distance, emissions and lead time
         for leg in legs:
             route_origin = leg.get('origin')
             route_destination = leg.get('destination')
@@ -116,6 +123,7 @@ def get_list_details(userId):
             distance += int(route.get('distance').get('S'))
             emissions += int(route.get('emissions').get('S'))
             lead_time += int(route.get('lead_time').get('S'))
+        # appending the item details to the item
         item['itemDetails'] = {
             'name': name,
             'origin': origin,
@@ -123,6 +131,7 @@ def get_list_details(userId):
             'emissions': emissions,
             'lead_time': lead_time,
         }
+        # adding the distance, emissions and lead time of each food item to the shopping list total
         total_distance += distance
         total_emissions += emissions
         total_lead_time += lead_time
@@ -138,20 +147,26 @@ def add_list():
     items = request.json.get('items')
     if not items:
         return jsonify({'error': 'Please provide "items"'}), 400
+    # get the time the list is saved at
     current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # item to be stored in the database consisting of the userId,
+    # the time the list was saved along with the shopping list items ids
     new_item = {
         'userId': {'S': userId},
         'createdAt': {'S': current_time},
         'items': {'L': []}
     }
+    # for each item in the list appending the itemId to the list of itemIds to be stored in the database
     for item in items:
         item_id = {
             'itemId': {'S': item.get('itemId').get('S')},
         }
         new_item['items']['L'].append({'M': item_id})
+    # saving the shopping list to the table of saved shopping lists
     dynamodb_client.put_item(
         TableName=SAVED_LIST_TABLE, Item=new_item
     )
+    # deleting all the items in the SHOPPING_LIST_TABLE associated with the userId to start a new shopping list
     for item in items:
         item_id = item.get('itemId').get('S')
         dynamodb_client.delete_item(
@@ -166,7 +181,7 @@ def add_list():
 
 @app.route('/savedList/list/<string:userId>', methods=['GET'])
 async def get_saved_list(userId):
-    print('Start of function')
+    # retrieve all saved lists for the user
     result = dynamodb_client.query(
         TableName=SAVED_LIST_TABLE,
         KeyConditionExpression='userId = :userId',
@@ -174,24 +189,25 @@ async def get_saved_list(userId):
             ':userId': {'S': userId}
         }
     )
-    print('Result of saved items call: ', result)
     saved_lists = []
+    # for each saved list
     for saved_list in result['Items']:
         saved_items = saved_list['items']['L']
-
-        print('Start of async get items')
+        # asynchronously getting the item details of each item in the saved list
         items = await asyncio.gather(*[create_list_item(item) for item in saved_items])
-        print('Finish of async get items')
 
+        # totals to keep track of distance, emissions and lead time for entire saved list
         total_distance = 0
         total_emissions = 0
         total_lead_time = 0
 
+        # appending to the totals the distance, emissions and lead time of each item
         for item in items:
             total_distance += item['distance']
             total_emissions += item['emissions']
             total_lead_time += item['lead_time']
 
+        # creating a dictionary of the details for a saved list
         shopping_list = {
             'createdAt': saved_list['createdAt']['S'],
             'items_list': items,
@@ -199,42 +215,38 @@ async def get_saved_list(userId):
             'total_emissions': total_emissions,
             'total_lead_time': total_lead_time
         }
-
+        # appending the saved list to the list of saved shopping lists
         saved_lists.append(shopping_list)
-
-    print('Finish of function')
     return jsonify(saved_lists)
 
 
 async def create_list_item(item):
-    print('Start of get item function for: ', item)
     name = item['M']['itemId']['S'].split(',')[0]
     origin = item['M']['itemId']['S'].split(',')[1]
-    print('Start of item query')
+    # get the item from the item table to get the legs
     result = dynamodb_client.get_item(
         TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
     )
-    print('Finish of item query')
     saved_item = result['Item']
     if not saved_item:
         return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"'}), 404
 
     legs = saved_item['legs']['L']
 
-    print('Start of async get legs')
+    # asynchronously gathers route information for each leg of the journey
     routes = await asyncio.gather(*[get_route_info(leg) for leg in legs])
-    print('Finish of async get legs')
 
+    # total distance, emissions and lead time for a food item
     distance = 0
     emissions = 0
     lead_time = 0
 
+    # appending distance, emissions and lead time of each leg of the journey to the food item's total
     for route in routes:
         distance += int(route['distance']['S'])
         emissions += int(route['emissions']['S'])
         lead_time += int(route['lead_time']['S'])
-
-    print('Finish of get item function for: ', item)
+    # return a dictionary with a food item's details
     return {
         'name': saved_item['name']['S'],
         'origin': saved_item['origin']['S'],
@@ -245,20 +257,16 @@ async def create_list_item(item):
 
 
 async def get_route_info(leg):
-    print('Start of get route function for: ', leg)
     route_origin = leg['M']['origin']['S']
     route_destination = leg['M']['destination']['S']
-
-    print('Start of route query')
+    # get route details for a leg of the journey
     route_result = dynamodb_client.get_item(
         TableName=ROUTE_TABLE, Key={'origin': {'S': route_origin}, 'destination': {'S': route_destination}}
     )
-    print('Finish of route query')
     route = route_result.get('Item')
     if not route:
         return jsonify({
             'error': f'Could not find route with origin "{route_origin}" and destination "{route_destination}"'}), 404
-    print('Finish of get route function for: ', leg)
     return route
 
 
@@ -289,23 +297,31 @@ def add_route():
 
 @app.route('/route/<string:name>/<string:origin>', methods=['GET'])
 def get_route(name, origin):
+    # first letter of items stored in the database has capital letter
+    # calling method to convert request params to correct format if not already correct
     name = capitalize_first_letter(name)
     origin = capitalize_first_letter(origin)
+    # getting the item with provided name and origin
     result = dynamodb_client.get_item(
         TableName=ITEM_TABLE, Key={'name': {'S': name}, 'origin': {'S': origin}}
     )
     item = result.get('Item')
+    # if an item with the name and origin does not exist, returning a 404 error
+    # with tailored suggestions of other searches
     if not item:
         suggestions = get_suggestions(name, origin)
         return jsonify({'error': f'Could not find food item with name "{name}" and origin "{origin}"',
                         'suggestions': suggestions}), 404
+    # getting legs of journey in the food item
     legs_dynamodb = item['legs']['L']
     legs = [{'origin': leg['M']['origin']['S'], 'destination': leg['M']['destination']['S']} for leg in legs_dynamodb]
     items = []
+    # variables to store accumulative distance, emissions and lead time
     distance = 0
     emissions = 0
     lead_time = 0
     points = []
+    # getting details of each leg of the journey
     for leg in legs:
         route_origin = leg.get('origin')
         route_destination = leg.get('destination')
@@ -316,8 +332,10 @@ def get_route(name, origin):
         if not item:
             return jsonify({'error': 'Could not find route with provided "origin" and "destination"'}), 404
         coordinates = []
+        # converting coordinates into the correct format to be used in creating the map
         for coord in item.get('coordinates').get('L'):
             coordinates.append([float(coord['L'][0]['N']), float(coord['L'][1]['N'])])
+        # appending to an items list json objects containing the information for each leg of the journey
         items.append(
             {'origin': item.get('origin').get('S'), 'destination': item.get('destination').get('S'),
              'origin_lat_lng': item.get('origin_lat_lng').get('S'),
@@ -328,10 +346,12 @@ def get_route(name, origin):
         )
         origin_lat_lng = item.get('origin_lat_lng').get('S')
         destination_lat_lng = item.get('destination_lat_lng').get('S')
+        # creating the set of intermediate destination points
         if origin_lat_lng not in points:
             points.append(origin_lat_lng)
         if destination_lat_lng not in points:
             points.append(destination_lat_lng)
+        # accumulating total distance, emissions and lead time for a food item journey
         distance += int(item.get('distance').get('S'))
         emissions += int(item.get('emissions').get('S'))
         lead_time += int(item.get('lead_time').get('S'))
